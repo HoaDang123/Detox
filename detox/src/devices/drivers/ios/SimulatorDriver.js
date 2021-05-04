@@ -10,7 +10,6 @@ const SimulatorLogPlugin = require('../../../artifacts/log/ios/SimulatorLogPlugi
 const SimulatorRecordVideoPlugin = require('../../../artifacts/video/SimulatorRecordVideoPlugin');
 const SimulatorScreenshotPlugin = require('../../../artifacts/screenshot/SimulatorScreenshotPlugin');
 const temporaryPath = require('../../../artifacts/utils/temporaryPath');
-const DetoxConfigError = require('../../../errors/DetoxConfigError');
 const DetoxRuntimeError = require('../../../errors/DetoxRuntimeError');
 const environment = require('../../../utils/environment');
 const argparse = require('../../../utils/argparse');

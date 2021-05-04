@@ -1,3 +1,5 @@
+const GenyCloudDeviceId = require('../GenyCloudDeviceId');
+
 describe('Genymotion-Cloud instance launcher', () => {
   const anInstance = () => {
     const instance = new GenyInstance();
@@ -5,6 +7,11 @@ describe('Genymotion-Cloud instance launcher', () => {
     instance.name = 'mock-instance-name';
     return instance;
   }
+
+  const aDeviceId = () => {
+    const instance = anInstance();
+    return new GenyCloudDeviceId(instance.uuid, instance.name, 'mock-adb-name');
+  };
 
   const givenAnInstanceDeletionError = () => instanceLifecycleService.deleteInstance.mockRejectedValue(new Error());
 
@@ -43,43 +50,43 @@ describe('Genymotion-Cloud instance launcher', () => {
 
   describe('Shutdown', () => {
     it('should delete the associated instance', async () => {
-      const instance = anInstance();
-      await uut.shutdown(instance);
-      expect(instanceLifecycleService.deleteInstance).toHaveBeenCalledWith(instance.uuid);
+      const deviceId = aDeviceId();
+      await uut.shutdown(deviceId);
+      expect(instanceLifecycleService.deleteInstance).toHaveBeenCalledWith(deviceId.instanceUUID);
     });
 
     it('should fail if deletion fails', async () => {
       givenAnInstanceDeletionError();
 
       try {
-        const instance = anInstance();
-        await uut.shutdown(instance);
+        const deviceId = aDeviceId();
+        await uut.shutdown(deviceId);
         fail('Expected an error');
       } catch (e) {}
     });
 
     it('should remove the instance from the cleanup registry', async () => {
-      const instance = anInstance();
-      await uut.shutdown(instance);
+      const deviceId = aDeviceId();
+      await uut.shutdown(deviceId);
       expect(deviceCleanupRegistry.disposeDevice).toHaveBeenCalledWith(expect.objectContaining({
-        uuid: instance.uuid,
+        uuid: deviceId.instanceUUID,
       }));
     });
 
     it('should emit associated events', async () => {
-      const instance = anInstance();
-      await uut.shutdown(instance);
+      const deviceId = aDeviceId();
+      await uut.shutdown(deviceId);
 
-      expect(eventEmitter.emit).toHaveBeenCalledWith('beforeShutdownDevice', { deviceId: instance.adbName });
-      expect(eventEmitter.emit).toHaveBeenCalledWith('shutdownDevice', { deviceId: instance.adbName });
+      expect(eventEmitter.emit).toHaveBeenCalledWith('beforeShutdownDevice', { deviceId: deviceId.adbName });
+      expect(eventEmitter.emit).toHaveBeenCalledWith('shutdownDevice', { deviceId: deviceId.adbName });
     });
 
     it('should not emit shutdownDevice prematurely', async () => {
       givenAnInstanceDeletionError();
 
       try {
-        const instance = anInstance();
-        await uut.shutdown(instance);
+        const deviceId = aDeviceId();
+        await uut.shutdown(deviceId);
         fail('Expected an error');
       } catch (e) {}
 

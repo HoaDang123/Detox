@@ -1,6 +1,9 @@
+const EmulatorDeviceId = require('../EmulatorDeviceId');
+
 describe('Android emulator device allocation', () => {
   const adbName = 'mock_adb_name-1117';
   const avdName = 'mock-AVD-name';
+  const deviceId = new EmulatorDeviceId(avdName, adbName);
 
   let logger;
   let retry;
@@ -64,11 +67,19 @@ describe('Android emulator device allocation', () => {
     }));
 
   describe('allocation', () => {
+    it('should return an emulator device ID', async () => {
+      givenFreeDevice(adbName);
+
+      const result = await uut.allocateDevice(avdName);
+      expect(result.constructor.name).toEqual(EmulatorDeviceId.name);
+    });
+
     it('should return a free device', async () => {
       givenFreeDevice(adbName);
 
       const result = await uut.allocateDevice(avdName);
-      expect(result).toEqual(adbName);
+      expect(result.adbName).toEqual(adbName);
+      expect(result.avdName).toEqual(avdName);
     });
 
     it('should register an allocated device', async () => {
@@ -247,7 +258,7 @@ describe('Android emulator device allocation', () => {
 
   describe('deallocation', () => {
     it('should dispose the device from the registry', async () => {
-      await uut.deallocateDevice(adbName);
+      await uut.deallocateDevice(deviceId);
       expect(deviceRegistry.disposeDevice).toHaveBeenCalledWith(adbName);
     });
 
@@ -255,7 +266,7 @@ describe('Android emulator device allocation', () => {
       deviceRegistry.disposeDevice.mockRejectedValue(new Error());
 
       try {
-        await uut.deallocateDevice(adbName);
+        await uut.deallocateDevice(deviceId);
       } catch (e) {
         return;
       }
